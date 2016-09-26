@@ -1,6 +1,7 @@
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.EventQueue;
+import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.Image;
 import java.awt.Toolkit;
@@ -10,6 +11,7 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -30,10 +32,6 @@ import javax.xml.bind.DatatypeConverter;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import javax.swing.BoxLayout;
-
-import java.awt.FlowLayout;
-
 public class UCS {
 
 	private JFrame frmUnitTesting;
@@ -43,6 +41,8 @@ public class UCS {
 	private JPanel panelImage;
 	private JLabel labelTest;
 	private JTextArea biomorfTA;
+	private JTextField tF_fileOutput;
+	private JPanel p_ImageOutput;
 
 	/**
 	 * Launch the application.
@@ -280,30 +280,50 @@ public class UCS {
 		
 		JPanel panel = new JPanel();
 		panel.setBorder(new TitledBorder(null, "Canon Camera 1200D", TitledBorder.LEADING, TitledBorder.TOP, null, null));
-		panel.setBounds(10, 416, 709, 172);
+		panel.setBounds(10, 416, 709, 314);
 		mainPanel.add(panel);
 		panel.setLayout(null);
 		
-		JButton btnCameraConnect = new JButton("Connect");
-		btnCameraConnect.setBounds(10, 21, 115, 23);
-		panel.add(btnCameraConnect);
-		
-		JTextArea textArea = new JTextArea();
-		textArea.setBounds(135, 21, 392, 140);
-		panel.add(textArea);
+		JTextArea tA_OutputConsole = new JTextArea();
+		tA_OutputConsole.setBounds(135, 50, 253, 253);
+		panel.add(tA_OutputConsole);
 		
 		JButton btnCameraCapture = new JButton("Capture");
-		btnCameraCapture.setBounds(10, 50, 115, 23);
+		btnCameraCapture.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				String results = request(ipTF.getText(), Integer.parseInt(portTF.getText()),"CANON_1200D", "CAPTURE", "");
+				tA_OutputConsole.setText(results);
+				JSONObject json = null;
+				try {
+					p_ImageOutput.removeAll();
+					json = new JSONObject(results);
+					String result = json.getString("result");
+					BufferedImage myPicture = ImageIO.read(new File(result));
+					Image newimg = myPicture.getScaledInstance(p_ImageOutput.getWidth(), p_ImageOutput.getHeight(),  java.awt.Image.SCALE_SMOOTH);
+					p_ImageOutput.add(new JLabel(new ImageIcon(newimg)));
+					tF_fileOutput.setText(result);
+				} catch (JSONException | IOException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+			}
+		});
+		btnCameraCapture.setBounds(10, 21, 115, 23);
 		panel.add(btnCameraCapture);
 		
-		JPanel panel_4 = new JPanel();
-		panel_4.setBackground(UIManager.getColor("Button.shadow"));
-		panel_4.setBounds(537, 21, 162, 140);
-		panel.add(panel_4);
+		tF_fileOutput = new JTextField();
+		tF_fileOutput.setBounds(243, 22, 456, 20);
+		panel.add(tF_fileOutput);
+		tF_fileOutput.setColumns(10);
 		
-		JButton btnCameraDisconnect = new JButton("Disconnect");
-		btnCameraDisconnect.setBounds(10, 79, 115, 23);
-		panel.add(btnCameraDisconnect);
+		JLabel lblNewLabel = new JLabel("File Path Output");
+		lblNewLabel.setBounds(135, 25, 98, 14);
+		panel.add(lblNewLabel);
+		
+		p_ImageOutput = new JPanel();
+		p_ImageOutput.setBackground(Color.WHITE);
+		p_ImageOutput.setBounds(446, 50, 253, 253);
+		panel.add(p_ImageOutput);
 		
 		JPanel panel_5 = new JPanel();
 		panel_5.setBorder(new TitledBorder(null, "Scriptel Signature", TitledBorder.LEADING, TitledBorder.TOP, null, null));
