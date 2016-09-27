@@ -10,6 +10,5 @@
 	<classpathentry kind="lib" path="lib/commons-codec-1.8.jar"/>
 	<classpathentry kind="lib" path="lib/commons-io-2.4.jar"/>
 	<classpathentry kind="lib" path="lib/java-json.jar"/>
-	<classpathentry kind="lib" path="lib/CanonCamera1200D.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

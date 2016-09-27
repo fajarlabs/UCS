@@ -27,8 +27,8 @@ import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.UIManager;
 import javax.swing.border.TitledBorder;
-import javax.xml.bind.DatatypeConverter;
 
+import org.apache.commons.codec.binary.Base64;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -93,72 +93,44 @@ public class UCS {
 		mainPanel.add(panel_1);
 		panel_1.setLayout(null);
 
-		JButton BtnSign = new JButton("Sign");
+		JButton BtnSign = new JButton("Connect");
 		BtnSign.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
-				request(ipTF.getText(), Integer.parseInt(portTF.getText()),
-						"SIGNATURE_PAD_WACOM", "SIGN", "");
+				JSONObject oJsonData = new JSONObject();
+				try {
+					oJsonData.put("name", "Fajar Rizki");
+					oJsonData.put("nik", "129800000343000");
+					oJsonData.put("operator", "Administrator");
+				} catch (JSONException e1) {
+					System.err.println(e1.getMessage());
+				}
+				String result = request(ipTF.getText(), Integer.parseInt(portTF.getText()),"SIGNATURE_PAD_WACOM", "SIGN", oJsonData.toString());
+				try {
+					JSONObject parse = new JSONObject(result);
+					String img = parse.getString("result");
+					panelImage.removeAll();
+					try {
+						byte[] btDataFile = Base64.decodeBase64(img);
+						BufferedImage image = ImageIO.read(new ByteArrayInputStream(btDataFile));
+						ImageIcon i = new ImageIcon(image);
+						JLabel il = new JLabel();
+						il.setIcon(i);
+						il.setAlignmentX(JLabel.CENTER_ALIGNMENT);
+						panelImage.add(il);
+					} catch (IOException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				} catch (JSONException e) {
+					System.err.println(e.getMessage());
+				}
+				wacomTA.setText("");
+				wacomTA.setText(result);
 			}
 		});
 		BtnSign.setFont(new Font("Dialog", Font.PLAIN, 11));
 		BtnSign.setBounds(10, 21, 119, 23);
 		panel_1.add(BtnSign);
-
-		JButton btnClear = new JButton("Clear");
-		btnClear.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				request(ipTF.getText(), Integer.parseInt(portTF.getText()),
-						"SIGNATURE_PAD_WACOM", "CLEAR", "");
-			}
-		});
-		btnClear.setFont(new Font("Dialog", Font.PLAIN, 11));
-		btnClear.setBounds(10, 49, 119, 23);
-		panel_1.add(btnClear);
-
-		JButton btnCancel = new JButton("Cancel");
-		btnCancel.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				request(ipTF.getText(), Integer.parseInt(portTF.getText()),
-						"SIGNATURE_PAD_WACOM", "CANCEL", "");
-			}
-		});
-		btnCancel.setFont(new Font("Dialog", Font.PLAIN, 11));
-		btnCancel.setBounds(10, 78, 119, 23);
-		panel_1.add(btnCancel);
-
-		JButton btnOk = new JButton("Ok");
-		btnOk.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				String result = request(ipTF.getText(),
-						Integer.parseInt(portTF.getText()),
-						"SIGNATURE_PAD_WACOM", "OK", "");
-				wacomTA.setText(result);
-				BufferedImage scaledImage = null;
-				try {
-					JSONObject jsonImage = new JSONObject(wacomTA.getText());
-					try {
-						byte[] bytes = DatatypeConverter
-								.parseBase64Binary(jsonImage.getString("result"));
-						ByteArrayInputStream bin = new ByteArrayInputStream(bytes);
-						scaledImage = ImageIO.read(bin);
-						Image dimg = scaledImage.getScaledInstance(panelImage.getWidth(), panelImage.getHeight(),
-						        Image.SCALE_SMOOTH);
-						ImageIcon pic = new ImageIcon(dimg);
-						panelImage.removeAll();
-						panelImage.add(new JLabel(pic));
-					} catch (IOException ex) {
-						// handle exception...
-					}
-				} catch (JSONException e1) {
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
-				}
-				
-			}
-		});
-		btnOk.setFont(new Font("Dialog", Font.PLAIN, 11));
-		btnOk.setBounds(10, 107, 119, 23);
-		panel_1.add(btnOk);
 
 		wacomTA = new JTextArea();
 		wacomTA.setLineWrap(true);
@@ -174,8 +146,7 @@ public class UCS {
 		JPanel panel_2 = new JPanel();
 		panel_2.setBounds(10, 11, 594, 49);
 		panel_2.setBackground(UIManager.getColor("Button.background"));
-		panel_2.setBorder(new TitledBorder(null, "Connection",
-				TitledBorder.LEADING, TitledBorder.TOP, null, null));
+		panel_2.setBorder(new TitledBorder(null, "Connection",TitledBorder.LEADING, TitledBorder.TOP, null, null));
 		mainPanel.add(panel_2);
 		panel_2.setLayout(null);
 
@@ -219,59 +190,16 @@ public class UCS {
 		mainPanel.add(panel_3);
 		panel_3.setLayout(null);
 
-		JButton btnConnectAuth = new JButton("Connect & Auth");
-		btnConnectAuth.addActionListener(new ActionListener() {
+		JButton btnSignatureWacom = new JButton("Connect");
+		
+		btnSignatureWacom.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				String result = request(ipTF.getText(), Integer.parseInt(portTF.getText()),"EKTP_BIOMORF", "CONNECT_AND_AUTH", "");
-				biomorfTA.append(result+"\n\n");
-			}
-		});
-		btnConnectAuth.setFont(new Font("Dialog", Font.PLAIN, 11));
-		btnConnectAuth.setBounds(10, 23, 116, 23);
-		panel_3.add(btnConnectAuth);
 
-		JButton btnReadCard = new JButton("Read Card");
-		btnReadCard.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				String result = request(ipTF.getText(), Integer.parseInt(portTF.getText()),"EKTP_BIOMORF", "READ_CARD", "");
-				biomorfTA.append(result+"\n\n");
 			}
 		});
-		btnReadCard.setFont(new Font("Dialog", Font.PLAIN, 11));
-		btnReadCard.setBounds(10, 54, 116, 23);
-		panel_3.add(btnReadCard);
-
-		JButton btnVerify = new JButton("Verify");
-		btnVerify.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				String result = request(ipTF.getText(), Integer.parseInt(portTF.getText()),"EKTP_BIOMORF", "VERIFY", "");
-				biomorfTA.append(result+"\n\n");
-			}
-		});
-		btnVerify.setFont(new Font("Dialog", Font.PLAIN, 11));
-		btnVerify.setBounds(10, 88, 116, 23);
-		panel_3.add(btnVerify);
-
-		JButton btnNewButton = new JButton("Get Data");
-		btnNewButton.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				String result = request(ipTF.getText(), Integer.parseInt(portTF.getText()),"EKTP_BIOMORF", "GET_DATA", "");
-				biomorfTA.append(result+"\n\n");
-			}
-		});
-		btnNewButton.setFont(new Font("Dialog", Font.PLAIN, 11));
-		btnNewButton.setBounds(10, 120, 116, 23);
-		panel_3.add(btnNewButton);
-
-		JButton btnDisconnect = new JButton("Disconnect");
-		btnDisconnect.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				request(ipTF.getText(), Integer.parseInt(portTF.getText()),"EKTP_BIOMORF", "DISCONNECT", "");
-			}
-		});
-		btnDisconnect.setFont(new Font("Dialog", Font.PLAIN, 11));
-		btnDisconnect.setBounds(10, 154, 116, 23);
-		panel_3.add(btnDisconnect);
+		btnSignatureWacom.setFont(new Font("Dialog", Font.PLAIN, 11));
+		btnSignatureWacom.setBounds(10, 23, 116, 23);
+		panel_3.add(btnSignatureWacom);
 
 		biomorfTA = new JTextArea();
 		biomorfTA.setLineWrap(true);
