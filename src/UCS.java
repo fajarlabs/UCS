@@ -194,7 +194,9 @@ public class UCS {
 		
 		btnSignatureWacom.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-
+				String result = request(ipTF.getText(), Integer.parseInt(portTF.getText()),"EKTP_BIOMORF", "CONNECT_AND_AUTH", "");
+				biomorfTA.setText("");
+				biomorfTA.setText(result);
 			}
 		});
 		btnSignatureWacom.setFont(new Font("Dialog", Font.PLAIN, 11));
@@ -216,7 +218,8 @@ public class UCS {
 		tA_OutputConsole.setBounds(135, 50, 253, 253);
 		panel.add(tA_OutputConsole);
 		
-		JButton btnCameraCapture = new JButton("Capture");
+		JButton btnCameraCapture = new JButton("Connect");
+		btnCameraCapture.setFont(new Font("Dialog", Font.PLAIN, 11));
 		btnCameraCapture.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				String results = request(ipTF.getText(), Integer.parseInt(portTF.getText()),"CANON_1200D", "CAPTURE", "");
