@@ -43,6 +43,8 @@ public class UCS {
 	private JTextArea biomorfTA;
 	private JTextField tF_fileOutput;
 	private JPanel p_ImageOutput;
+	private JPanel p_ImageScriptel;
+	private JTextArea tA_Scriptel;
 
 	/**
 	 * Launch the application.
@@ -100,7 +102,7 @@ public class UCS {
 				try {
 					oJsonData.put("name", "Fajar Rizki");
 					oJsonData.put("nik", "129800000343000");
-					oJsonData.put("operator", "Administrator");
+					oJsonData.put("city", "Depok");
 				} catch (JSONException e1) {
 					System.err.println(e1.getMessage());
 				}
@@ -165,7 +167,7 @@ public class UCS {
 		panel_2.add(lblPort);
 
 		portTF = new JTextField();
-		portTF.setText("13000");
+		portTF.setText("35300");
 		portTF.setBounds(288, 21, 86, 20);
 		panel_2.add(portTF);
 		portTF.setColumns(10);
@@ -228,11 +230,15 @@ public class UCS {
 				try {
 					p_ImageOutput.removeAll();
 					json = new JSONObject(results);
-					String result = json.getString("result");
-					BufferedImage myPicture = ImageIO.read(new File(result));
-					Image newimg = myPicture.getScaledInstance(p_ImageOutput.getWidth(), p_ImageOutput.getHeight(),  java.awt.Image.SCALE_SMOOTH);
-					p_ImageOutput.add(new JLabel(new ImageIcon(newimg)));
-					tF_fileOutput.setText(result);
+					String img = json.getString("result");
+					byte[] btDataFile = Base64.decodeBase64(img);
+					BufferedImage image = ImageIO.read(new ByteArrayInputStream(btDataFile));
+					ImageIcon i = new ImageIcon(image);
+					JLabel il = new JLabel();
+					il.setIcon(i);
+					il.setAlignmentX(JLabel.CENTER_ALIGNMENT);
+					p_ImageOutput.add(il);
+					tF_fileOutput.setText(img);
 				} catch (JSONException | IOException e1) {
 					// TODO Auto-generated catch block
 					e1.printStackTrace();
@@ -262,30 +268,49 @@ public class UCS {
 		mainPanel.add(panel_5);
 		panel_5.setLayout(null);
 		
-		JButton btnSignScriptel = new JButton("Sign");
+		JButton btnSignScriptel = new JButton("Connect");
+		btnSignScriptel.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				JSONObject oJsonData = new JSONObject();
+				try {
+					oJsonData.put("name", "Fajar Rizki");
+					oJsonData.put("nik", "129800000343000");
+					oJsonData.put("city", "Depok");
+				} catch (JSONException e1) {
+					System.err.println(e1.getMessage());
+				}
+				String result = request(ipTF.getText(), Integer.parseInt(portTF.getText()),"SIGNATURE_PAD_SCRIPTEL", "SIGN", oJsonData.toString());
+					JSONObject parse;
+					try {
+						parse = new JSONObject(result);
+						String img = parse.getString("result");
+						p_ImageScriptel.removeAll();
+						byte[] btDataFile = Base64.decodeBase64(img);
+						BufferedImage image = ImageIO.read(new ByteArrayInputStream(btDataFile));
+						ImageIcon i = new ImageIcon(image);
+						JLabel il = new JLabel();
+						il.setIcon(i);
+						il.setAlignmentX(JLabel.CENTER_ALIGNMENT);
+						p_ImageScriptel.add(il);
+					} catch (JSONException | IOException e1) {
+						System.err.println(e1.getMessage());
+					}
+				tA_Scriptel.setText("");
+				tA_Scriptel.setText(result);
+			}
+		});
+		btnSignScriptel.setFont(new Font("Dialog", Font.PLAIN, 11));
 		btnSignScriptel.setBounds(10, 21, 112, 23);
 		panel_5.add(btnSignScriptel);
 		
-		JButton btnClearScriptel = new JButton("Clear");
-		btnClearScriptel.setBounds(10, 49, 112, 23);
-		panel_5.add(btnClearScriptel);
+		tA_Scriptel = new JTextArea();
+		tA_Scriptel.setBounds(132, 21, 329, 109);
+		panel_5.add(tA_Scriptel);
 		
-		JButton btnCancelScriptel = new JButton("Cancel");
-		btnCancelScriptel.setBounds(10, 78, 112, 23);
-		panel_5.add(btnCancelScriptel);
-		
-		JButton btnOk_1 = new JButton("Ok");
-		btnOk_1.setBounds(10, 107, 112, 23);
-		panel_5.add(btnOk_1);
-		
-		JTextArea textArea_1 = new JTextArea();
-		textArea_1.setBounds(132, 21, 329, 109);
-		panel_5.add(textArea_1);
-		
-		JPanel panel_6 = new JPanel();
-		panel_6.setBackground(UIManager.getColor("Button.shadow"));
-		panel_6.setBounds(471, 21, 138, 109);
-		panel_5.add(panel_6);
+		p_ImageScriptel = new JPanel();
+		p_ImageScriptel.setBackground(UIManager.getColor("Button.shadow"));
+		p_ImageScriptel.setBounds(471, 21, 138, 109);
+		panel_5.add(p_ImageScriptel);
 		
 		JPanel panel_7 = new JPanel();
 		panel_7.setBorder(new TitledBorder(null, "Biomorf Fingerprint", TitledBorder.LEADING, TitledBorder.TOP, null, null));
@@ -303,8 +328,11 @@ public class UCS {
 			/* Instansiasi kelas Socket */
 			Socket client = new Socket(serverName, port);
 
+			//TRANSMITER====================================================================
+			
+			/* Kirim data ke server */
 			OutputStream outToServer = client.getOutputStream();
-			DataOutputStream out = new DataOutputStream(outToServer);
+			DataOutputStream dos = new DataOutputStream(outToServer);
 			JSONObject sendJSON = new JSONObject();
 			try {
 				sendJSON.put("request", request);
@@ -313,12 +341,29 @@ public class UCS {
 			} catch (JSONException e) {
 				e.printStackTrace();
 			}
-
-			out.writeUTF(sendJSON.toString());
-
+			
+			String s = sendJSON.toString();
+			
+			/* convert and sending byte */
+			byte[] b = s.getBytes("utf-8");
+			dos.writeInt(b.length);
+			dos.write(b);
+			
+			//RECEIVER====================================================================
+			
+			/* Terima data dari server */
 			InputStream inFromServer = client.getInputStream();
-			DataInputStream in = new DataInputStream(inFromServer);
-			result = in.readUTF();
+			DataInputStream dis = new DataInputStream(inFromServer);
+			
+			/* terima data array byte */
+			int len = dis.readInt();
+			byte[] bytes = new byte[len];
+			for(int i = 0; i < len; i++) {
+			   bytes[i] = dis.readByte();
+			}
+			
+			/* convert kembali ke string */
+			result = new String(bytes,"utf-8");
 			
 			/* Tutup socket */
 			client.close();
